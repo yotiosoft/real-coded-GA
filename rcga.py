@@ -73,6 +73,26 @@ def REX(x_parents, parents_n, children_n):
     
     return x_children, x_children_values
 
+# 途中経過を csv に出力
+def output_csv(g, x, filename):
+    with open(filename, "a") as f:
+        f.write("{0},".format(g))
+        for i in range(CELL):
+            for j in range(DIM):
+                f.write("{0},".format(x[i][j]))
+                f.write("\n")
+
+# 途中経過を csv から読み込み
+def input_csv(filename):
+    with open(filename, "r") as f:
+        lines = f.readlines()
+        x = np.zeros((CELL, DIM), dtype=np.float64)
+        g = int(lines[0])
+        for i in range(CELL):
+            for j in range(DIM):
+                x[i][j] = float(lines[1 + i * DIM + j])
+        return g, x
+
 # 評価関数
 def rosenbrock(x):
     return sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
@@ -84,9 +104,9 @@ CELL = 1000
 # 交叉率
 Pc = 0.7
 # 交叉個体数
-n_c = 500
+n_c = 300
 # 各ステップにおける親世代の置き換え数
-n_p = 50
+n_p = 40
 
 x = np.zeros((CELL, DIM), dtype=np.float64)
 # x を [0, 1] の間でランダムに初期化
@@ -124,5 +144,10 @@ for g in range(10000):
 
     # x_parent を elite で置き換える
     x[x_parent_index] = elite
+
+    # 1000 世代ごとに途中経過を出力
+    if g % 1000 == 0:
+        filename = "rex_{0}.csv".format(g)
+        output_csv(g, x, filename)
 
 # 最終的な個体群の中で最も評価関数の値が小さい個体を選択
