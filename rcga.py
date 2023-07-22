@@ -54,14 +54,14 @@ def REX(x_parents, n, k):
     x_children_values = np.zeros(n+k, dtype=np.float64)
 
     # 親の重心を求める
-    x_g = np.mean(x_parents, axis=0)
+    x_g = np.average(x_parents, axis=0)
     
     for i in range(n+k):
         # 平均0, 分散sigmaの正規分布に従う乱数を生成
         sigma = np.sqrt(1 / (n + k))
-        #xi = np.random.normal(0, sigma, n+k)
-        xi = np.random.uniform(-sigma, sigma, n+k)
-       
+        xi = np.random.normal(0, sigma, n+k)
+        #xi = np.random.uniform(-sigma, sigma, n+k)
+        
         # 各親間の距離 * xi
         s = 0
         for j in range(n+k):
@@ -80,11 +80,11 @@ def rosenbrock(x):
 # dim = 50
 DIM = 50
 # cell = 1000
-CELL = 300
+CELL = 1000
 # 交叉率
 Pc = 0.7
 # 交叉個体数
-n_c = 500
+n_c = 300
 # 各ステップにおける親世代の置き換え数
 n_p = 50
 
@@ -113,7 +113,7 @@ for g in range(10000):
     # 交叉
     # 個体数は n_c
     #child, child_values = blx_alpha(x_parent, n_c)
-    child, child_values = REX(x_parent, DIM, n_p - DIM)
+    child, child_values = REX(x_parent, DIM, n_c - DIM)
 
     # エリートを選択
     # エリート数 = n_p
