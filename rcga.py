@@ -26,13 +26,13 @@ def blx_alpha_one(x1, x2, pc, alpha):
 
     return c1, c2
 
-def blx_alpha(x_parent, nc, alpha=0.5):
+def blx_alpha(x_parents, nc, alpha=0.5):
     child = np.zeros((nc, DIM), dtype=np.float64)
     child_values = np.zeros(nc, dtype=np.float64)
     for i in range(0, nc, 2):
         # ランダムに2つの個体を選択し、交叉率Pcの確率で交叉を行う
         crossover_x = np.random.randint(0, n_p, 2)
-        child[i], child[i+1] = blx_alpha_one(x_parent[crossover_x[0]], x_parent[crossover_x[1]], Pc, alpha)
+        child[i], child[i+1] = blx_alpha_one(x_parents[crossover_x[0]], x_parents[crossover_x[1]], Pc, alpha)
         child_values[i] = rosenbrock(child[i])
         child_values[i+1] = rosenbrock(child[i+1])
     return child, child_values
@@ -47,6 +47,31 @@ def UNDX(p1, p2, p3, alpha=0.5, beta=0.5):
         # p1, p2 の直線と p3 の距離
         d2 = np.linalg.norm(np.cross(p3 - p1, p3 - p2)) / np.linalg.norm(p2 - p1)
         print(d2)
+
+# 多親交叉
+def REX(x_parents, n, k):
+    x_children = np.zeros((n+k, DIM), dtype=np.float64)
+    x_children_values = np.zeros(n+k, dtype=np.float64)
+
+    # 親の重心を求める
+    x_g = np.mean(x_parents, axis=0)
+    
+    for i in range(n+k):
+        # 平均0, 分散sigmaの正規分布に従う乱数を生成
+        sigma = np.sqrt(1 / (n + k))
+        #xi = np.random.normal(0, sigma, n+k)
+        xi = np.random.uniform(-sigma, sigma, n+k)
+       
+        # 各親間の距離 * xi
+        s = 0
+        for j in range(n+k):
+            s += xi[j] * (x_parents[j] - x_g)
+
+        # 子個体を生成
+        x_children[i] = x_g + s
+        x_children_values[i] = rosenbrock(x_children[i])
+    
+    return x_children, x_children_values
 
 # 評価関数
 def rosenbrock(x):
@@ -87,7 +112,8 @@ for g in range(10000):
 
     # 交叉
     # 個体数は n_c
-    child, child_values = blx_alpha(x_parent, n_c)
+    #child, child_values = blx_alpha(x_parent, n_c)
+    child, child_values = REX(x_parent, DIM, n_p - DIM)
 
     # エリートを選択
     # エリート数 = n_p
