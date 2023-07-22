@@ -74,8 +74,10 @@ for g in range(1000):
     # 交叉
     # ランダムに2つの個体を選択し、交叉率Pcの確率で交叉を行う
     crossover_x = np.random.choice(CELL, 2, replace=False)
+    print(new_x[crossover_x[0]], new_x[crossover_x[1]])
     new_x[crossover_x[0]], new_x[crossover_x[1]] = blx_alpha(new_x[crossover_x[0]], new_x[crossover_x[1]], Pc)
-
+    print(new_x[crossover_x[0]], new_x[crossover_x[1]])
+    
     x = new_x
 
 # 最終的な個体群の中で最も評価関数の値が小さい個体を選択
