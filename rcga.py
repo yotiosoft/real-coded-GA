@@ -2,7 +2,7 @@ import numpy as np
 import math
 
 # BLX-α 交叉
-def blx_alpha(x1, x2, pc, alpha=0.5):
+def blx_alpha_one(x1, x2, pc, alpha):
     c1 = np.zeros(DIM, dtype=np.float64)
     c2 = np.zeros(DIM, dtype=np.float64)
     # 交叉率pcの確率で交叉を行う
@@ -25,6 +25,17 @@ def blx_alpha(x1, x2, pc, alpha=0.5):
             c2[i] = x2[i]
 
     return c1, c2
+
+def blx_alpha(x_parent, nc, alpha=0.5):
+    child = np.zeros((nc, DIM), dtype=np.float64)
+    child_values = np.zeros(nc, dtype=np.float64)
+    for i in range(0, nc, 2):
+        # ランダムに2つの個体を選択し、交叉率Pcの確率で交叉を行う
+        crossover_x = np.random.randint(0, n_p, 2)
+        child[i], child[i+1] = blx_alpha_one(x_parent[crossover_x[0]], x_parent[crossover_x[1]], Pc, alpha)
+        child_values[i] = rosenbrock(child[i])
+        child_values[i+1] = rosenbrock(child[i+1])
+    return child, child_values
 
 # 単峰性正規分布交叉
 def UNDX(p1, p2, p3, alpha=0.5, beta=0.5):
@@ -76,15 +87,7 @@ for g in range(10000):
 
     # 交叉
     # 個体数は n_c
-    child = np.zeros((n_c, DIM), dtype=np.float64)
-    child_values = np.zeros(n_c, dtype=np.float64)
-    for i in range(0, n_c, 2):
-        # ランダムに2つの個体を選択し、交叉率Pcの確率で交叉を行う
-        crossover_x = np.random.randint(0, n_p, 2)
-        child[i], child[i+1] = blx_alpha(x_parent[crossover_x[0]], x_parent[crossover_x[1]], Pc)
-        UNDX(x_parent[crossover_x[0]], x_parent[crossover_x[1]], x_parent[crossover_x[1]])
-        child_values[i] = rosenbrock(child[i])
-        child_values[i+1] = rosenbrock(child[i+1])
+    child, child_values = blx_alpha(x_parent, n_c)
 
     # エリートを選択
     # エリート数 = n_p
