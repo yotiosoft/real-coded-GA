@@ -2,6 +2,7 @@ import numpy as np
 import math
 import csv
 import sys
+import time
 
 # BLX-α 交叉
 def blx_alpha_one(x1, x2, pc, alpha):
@@ -131,6 +132,7 @@ if len(sys.argv) >= 3:
     g, x = input_csv(filename)
 
 # 遺伝的アルゴリズムの実行
+t_start = time.time()
 for g in range(g+1, steps):
     # 親世代をランダムに抽出
     # 抽出数 = n_p
@@ -151,14 +153,17 @@ for g in range(g+1, steps):
 
     # x_parent を elite で置き換える
     x[x_parent_index] = elite
-    
-    if (g+1) % 100 == 0:
-        print(x[0])
 
     # 最小となる個体の評価値を出力
     x_values = [rosenbrock(x[i]) for i in range(CELL)]
     x_min = np.min(x_values)
     print("Generation: {0}, Minimum: {1}".format(g, x_min))
+
+    if (g+1) % 100 == 0:
+        # print(x[0])
+        t_end = time.time()
+        print("Time: {1}".format(g, t_end - t_start))
+        t_start = time.time()
 
     # 1000 世代ごとに途中経過を出力
     if (g+1) % 1000 == 0:
