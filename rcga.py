@@ -49,22 +49,22 @@ def UNDX(p1, p2, p3, alpha=0.5, beta=0.5):
         print(d2)
 
 # 多親交叉
-def REX(x_parents, n, k):
-    x_children = np.zeros((n+k, DIM), dtype=np.float64)
-    x_children_values = np.zeros(n+k, dtype=np.float64)
+def REX(x_parents, parents_n, children_n):
+    x_children = np.zeros((children_n, DIM), dtype=np.float64)
+    x_children_values = np.zeros(children_n, dtype=np.float64)
 
     # 親の重心を求める
     x_g = np.average(x_parents, axis=0)
     
-    for i in range(n+k):
+    for i in range(children_n):
         # 平均0, 分散sigmaの正規分布に従う乱数を生成
-        sigma = np.sqrt(1 / (n + k))
-        xi = np.random.normal(0, sigma, n+k)
+        sigma = np.sqrt(1 / (children_n))
+        xi = np.random.normal(0, sigma, parents_n)
         #xi = np.random.uniform(-sigma, sigma, n+k)
         
         # 各親間の距離 * xi
         s = 0
-        for j in range(n+k):
+        for j in range(parents_n):
             s += xi[j] * (x_parents[j] - x_g)
 
         # 子個体を生成
@@ -113,7 +113,7 @@ for g in range(10000):
     # 交叉
     # 個体数は n_c
     #child, child_values = blx_alpha(x_parent, n_c)
-    child, child_values = REX(x_parent, DIM, n_c - DIM)
+    child, child_values = REX(x_parent, n_p, n_c)
 
     # エリートを選択
     # エリート数 = n_p
