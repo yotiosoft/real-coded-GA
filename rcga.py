@@ -26,6 +26,17 @@ def blx_alpha(x1, x2, pc, alpha=0.5):
 
     return c1, c2
 
+# 単峰性正規分布交叉
+def UNDX(p1, p2, p3, alpha=0.5, beta=0.5):
+    m = (p1 + p2) / 2
+    e = (p2 - p1) / np.abs(p2 - p1)
+    
+    for i in range(DIM):
+        s1 = alpha * abs(p1[i] - p2[i])
+        # p1, p2 の直線と p3 の距離
+        d2 = np.linalg.norm(np.cross(p3 - p1, p3 - p2)) / np.linalg.norm(p2 - p1)
+        print(d2)
+
 # 評価関数
 def rosenbrock(x):
     return sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
@@ -33,11 +44,11 @@ def rosenbrock(x):
 # dim = 50
 DIM = 50
 # cell = 1000
-CELL = 1000
+CELL = 300
 # 交叉率
 Pc = 0.7
 # 交叉個体数
-n_c = 300
+n_c = 500
 # 各ステップにおける親世代の置き換え数
 n_p = 50
 
@@ -71,6 +82,7 @@ for g in range(10000):
         # ランダムに2つの個体を選択し、交叉率Pcの確率で交叉を行う
         crossover_x = np.random.randint(0, n_p, 2)
         child[i], child[i+1] = blx_alpha(x_parent[crossover_x[0]], x_parent[crossover_x[1]], Pc)
+        UNDX(x_parent[crossover_x[0]], x_parent[crossover_x[1]], x_parent[crossover_x[1]])
         child_values[i] = rosenbrock(child[i])
         child_values[i+1] = rosenbrock(child[i+1])
 
