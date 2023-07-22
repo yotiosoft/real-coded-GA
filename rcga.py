@@ -98,7 +98,7 @@ def input_csv(filename):
 # 評価関数
 def rosenbrock(x):
     sum = 0
-    for i in range(DIM-1):
+    for i in range(1, DIM):
         sum += 100 * (x[0] - x[i] ** 2) ** 2 + (1 - x[i]) ** 2
     return sum
     #return np.sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
