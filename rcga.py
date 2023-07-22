@@ -65,7 +65,7 @@ def REX(x_parents, parents_n, children_n):
         #xi = np.random.uniform(-sigma, sigma, parents_n)
         
         # 各親間の距離 * xi
-        s = 0
+        s = np.zeros(DIM, dtype=np.float64)
         for j in range(parents_n):
             s += xi[j] * (x_parents[j] - x_g)
 
@@ -97,19 +97,18 @@ def input_csv(filename):
 
 # 評価関数
 def rosenbrock(x):
-    return np.sum(x * x - 10 * np.cos(2 * np.pi * x) + 10)
-    #return sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
+    return np.sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
 
 # dim = 50
 DIM = 50
 # cell = 1000
-CELL = 600
+CELL = 1000
 # 交叉率
 Pc = 0.7
 # 交叉個体数
-n_c = 500
+n_c = 600
 # 各ステップにおける親世代の置き換え数
-n_p = 50
+n_p = 100
 
 # x をランダムに初期化
 x = np.zeros((CELL, DIM), dtype=np.float64)
