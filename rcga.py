@@ -1,5 +1,7 @@
 import numpy as np
 import math
+import csv
+import sys
 
 # BLX-α 交叉
 def blx_alpha_one(x1, x2, pc, alpha):
@@ -75,22 +77,22 @@ def REX(x_parents, parents_n, children_n):
 
 # 途中経過を csv に出力
 def output_csv(g, x, filename):
-    with open(filename, "a") as f:
-        f.write("{0},".format(g))
+    with open(filename, "w") as f:
+        writer = csv.writer(f)
+        writer.writerow([g+1])
         for i in range(CELL):
-            for j in range(DIM):
-                f.write("{0},".format(x[i][j]))
-                f.write("\n")
+            writer.writerow(x[i])
 
 # 途中経過を csv から読み込み
 def input_csv(filename):
     with open(filename, "r") as f:
         lines = f.readlines()
         x = np.zeros((CELL, DIM), dtype=np.float64)
-        g = int(lines[0])
+        g = int(lines[0])-1
         for i in range(CELL):
+            strx = lines[i+1].split(",")
             for j in range(DIM):
-                x[i][j] = float(lines[1 + i * DIM + j])
+                x[i][j] = float(strx[j])
         return g, x
 
 # 評価関数
@@ -106,16 +108,27 @@ Pc = 0.7
 # 交叉個体数
 n_c = 300
 # 各ステップにおける親世代の置き換え数
-n_p = 40
+n_p = 30
 
+# x をランダムに初期化
 x = np.zeros((CELL, DIM), dtype=np.float64)
-# x を [0, 1] の間でランダムに初期化
 for i in range(CELL):
     for j in range(DIM):
         x[i][j] = np.random.rand()
 
+# 引数
+# 総ステップ数の読み込み
+steps = 10000
+g = -1
+if len(sys.argv) >= 2:
+    steps = int(sys.argv[1])
+# 途中経過の読み込み
+if len(sys.argv) >= 3:
+    filename = "rex_{0}.csv".format(sys.argv[2])
+    g, x = input_csv(filename)
+
 # 遺伝的アルゴリズムの実行
-for g in range(10000):
+for g in range(g+1, steps):
     x_values = np.zeros(CELL, dtype=np.float64)
     x_min = math.inf
     for i in range(CELL):
@@ -146,8 +159,8 @@ for g in range(10000):
     x[x_parent_index] = elite
 
     # 1000 世代ごとに途中経過を出力
-    if g % 1000 == 0:
-        filename = "rex_{0}.csv".format(g)
+    if (g+1) % 1000 == 0:
+        filename = "rex_{0}.csv".format(g+1)
         output_csv(g, x, filename)
 
 # 最終的な個体群の中で最も評価関数の値が小さい個体を選択
