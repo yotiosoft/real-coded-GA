@@ -2,12 +2,12 @@ import numpy as np
 import math
 
 # BLX-α 交叉
-def blx_alpha(x1, x2, pc, alpha=0.01):
+def blx_alpha(x1, x2, pc, alpha=0.5):
     c1 = np.zeros(DIM, dtype=np.float64)
     c2 = np.zeros(DIM, dtype=np.float64)
     # 交叉率pcの確率で交叉を行う
     crossover_index = np.random.choice([True, False], size=DIM, p=[pc, 1 - pc])
-
+    
     for i in range(DIM):
         if crossover_index[i]:
             # c1, c2 の各次元について、x1, x2 の値の小さい方から
@@ -28,18 +28,18 @@ def blx_alpha(x1, x2, pc, alpha=0.01):
 
 # 評価関数
 def rosenbrock(x):
-    sum = 0
-    for i in range(DIM-1):
-        sum += 100 * (x[i + 1] - x[i] ** 2) ** 2 + (1 - x[i]) ** 2
-    return sum
-    #return sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
+    return sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
 
 # dim = 50
 DIM = 50
-# cell = 300
-CELL = 300
+# cell = 1000
+CELL = 1000
 # 交叉率
 Pc = 0.7
+# 交叉個体数
+n_c = 300
+# 各ステップにおける親世代の置き換え数
+n_p = 50
 
 x = np.zeros((CELL, DIM), dtype=np.float64)
 # x を [0, 1] の間でランダムに初期化
@@ -48,7 +48,7 @@ for i in range(CELL):
         x[i][j] = np.random.rand()
 
 # 遺伝的アルゴリズムの実行
-for g in range(1000):
+for g in range(10000):
     x_values = np.zeros(CELL, dtype=np.float64)
     x_min = math.inf
     for i in range(CELL):
@@ -60,15 +60,14 @@ for g in range(1000):
 
     # 親世代をランダムに抽出
     # 抽出数 = n_p
-    n_p = 50
     x_parent_index = np.random.randint(0, CELL, n_p)
     x_parent = x[x_parent_index]
 
     # 交叉
-    # 個体数は DIM * 10
-    child = np.zeros((DIM * 10, DIM), dtype=np.float64)
-    child_values = np.zeros(DIM * 10, dtype=np.float64)
-    for i in range(0, DIM * 10, 2):
+    # 個体数は n_c
+    child = np.zeros((n_c, DIM), dtype=np.float64)
+    child_values = np.zeros(n_c, dtype=np.float64)
+    for i in range(0, n_c, 2):
         # ランダムに2つの個体を選択し、交叉率Pcの確率で交叉を行う
         crossover_x = np.random.randint(0, n_p, 2)
         child[i], child[i+1] = blx_alpha(x_parent[crossover_x[0]], x_parent[crossover_x[1]], Pc)
