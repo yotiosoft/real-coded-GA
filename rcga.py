@@ -97,7 +97,11 @@ def input_csv(filename):
 
 # 評価関数
 def rosenbrock(x):
-    return np.sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
+    sum = 0
+    for i in range(DIM-1):
+        sum += 100 * (x[0] - x[i] ** 2) ** 2 + (1 - x[i]) ** 2
+    return sum
+    #return np.sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
 
 # dim = 50
 DIM = 50
@@ -113,8 +117,7 @@ n_p = 100
 # x をランダムに初期化
 x = np.zeros((CELL, DIM), dtype=np.float64)
 for i in range(CELL):
-    for j in range(DIM):
-        x[i][j] = np.random.uniform(-2.048, 2.048)
+    x[i] = np.random.uniform(-2.048, 2.048, DIM)
 
 # 引数
 # 総ステップ数の読み込み
@@ -129,15 +132,6 @@ if len(sys.argv) >= 3:
 
 # 遺伝的アルゴリズムの実行
 for g in range(g+1, steps):
-    x_values = np.zeros(CELL, dtype=np.float64)
-    x_min = math.inf
-    for i in range(CELL):
-        # 評価関数の値を計算
-        x_values[i] = rosenbrock(x[i])
-        if x_min > x_values[i]:
-            x_min = x_values[i]
-    print("Generation: {0}, Minimum: {1}".format(g, x_min))
-
     # 親世代をランダムに抽出
     # 抽出数 = n_p
     x_parent_index = np.random.randint(0, CELL, n_p)
@@ -157,6 +151,14 @@ for g in range(g+1, steps):
 
     # x_parent を elite で置き換える
     x[x_parent_index] = elite
+    
+    if (g+1) % 100 == 0:
+        print(x[0])
+
+    # 最小となる個体の評価値を出力
+    x_values = [rosenbrock(x[i]) for i in range(CELL)]
+    x_min = np.min(x_values)
+    print("Generation: {0}, Minimum: {1}".format(g, x_min))
 
     # 1000 世代ごとに途中経過を出力
     if (g+1) % 1000 == 0:
