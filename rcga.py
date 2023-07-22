@@ -102,19 +102,19 @@ def rosenbrock(x):
 # dim = 50
 DIM = 50
 # cell = 1000
-CELL = 1000
+CELL = 600
 # 交叉率
 Pc = 0.7
 # 交叉個体数
-n_c = 300
+n_c = 500
 # 各ステップにおける親世代の置き換え数
-n_p = 30
+n_p = 50
 
 # x をランダムに初期化
 x = np.zeros((CELL, DIM), dtype=np.float64)
 for i in range(CELL):
     for j in range(DIM):
-        x[i][j] = np.random.rand()
+        x[i][j] = np.random.uniform(-2.048, 2.048)
 
 # 引数
 # 総ステップ数の読み込み
