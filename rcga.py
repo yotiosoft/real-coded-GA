@@ -54,26 +54,6 @@ def UNDX(p1, p2, p3, alpha=0.5, beta=0.5):
         print(d2)
 
 # 多親交叉
-def REX_thread(x_parents, x_g, parents_n, start, window_size):
-    t_children = np.zeros((window_size, DIM), dtype=np.float64)
-    t_children_values = np.zeros(window_size, dtype=np.float64)
-    
-    sigma = np.sqrt(1 / (parents_n))
-    for i in range(window_size):
-        # 平均0, 分散sigmaの正規分布に従う乱数を生成
-        xi = np.random.normal(0, sigma, parents_n)
-        #xi = np.random.uniform(-sigma, sigma, parents_n)
-            
-        # 各親間の距離 * xi
-        s = np.zeros(DIM, dtype=np.float64)
-        for j in range(parents_n):
-            s += xi[j] * (x_parents[j] - x_g)
-
-        # 子個体を生成
-        t_children[i] = x_g + s
-        t_children_values[i] = rosenbrock(t_children[i])
-    return t_children, t_children_values, start, window_size
-
 def REX(x_parents, parents_n, children_n):
     x_children = np.zeros((children_n, DIM), dtype=np.float64)
     x_children_values = np.zeros(children_n, dtype=np.float64)
@@ -81,14 +61,20 @@ def REX(x_parents, parents_n, children_n):
     # 親の重心を求める
     x_g = np.average(x_parents, axis=0)
     
-    window_size = 50
-    with ThreadPoolExecutor(max_workers=8) as e:
-        # 並列処理
-        futures_list = [e.submit(REX_thread, x_parents, x_g, parents_n, start, min(window_size, children_n - start)) for start in range(0, children_n, window_size)]
-        for future in futures.as_completed(fs=futures_list):
-            t_children, t_children_values, start, window_size = future.result()
-            x_children[start:start+window_size] = t_children
-            x_children_values[start:start+window_size] = t_children_values
+    sigma = np.sqrt(1 / (parents_n))
+    for i in range(children_n):
+        # 平均0, 分散sigmaの正規分布に従う乱数を生成
+        xi = np.random.normal(0, sigma, parents_n)
+        #xi = np.random.uniform(-sigma, sigma, parents_n)
+        
+        # 各親間の距離 * xi
+        s = np.zeros(DIM, dtype=np.float64)
+        for j in range(parents_n):
+            s += xi[j] * (x_parents[j] - x_g)
+
+        # 子個体を生成
+        x_children[i] = x_g + s
+        x_children_values[i] = rosenbrock(x_children[i])
     
     return x_children, x_children_values
 
@@ -127,9 +113,9 @@ CELL = 1000
 # 交叉率
 Pc = 0.7
 # 交叉個体数
-n_c = 600
+n_c = 300
 # 各ステップにおける親世代の置き換え数
-n_p = 100
+n_p = 50
 
 # x をランダムに初期化
 x = np.zeros((CELL, DIM), dtype=np.float64)
