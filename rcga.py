@@ -58,9 +58,9 @@ def REX(x_parents, parents_n, children_n):
     # 親の重心を求める
     x_g = np.average(x_parents, axis=0)
     
+    sigma = np.sqrt(1 / (parents_n))
     for i in range(children_n):
         # 平均0, 分散sigmaの正規分布に従う乱数を生成
-        sigma = np.sqrt(1 / (parents_n))
         xi = np.random.normal(0, sigma, parents_n)
         #xi = np.random.uniform(-sigma, sigma, parents_n)
         
@@ -97,7 +97,8 @@ def input_csv(filename):
 
 # 評価関数
 def rosenbrock(x):
-    return sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
+    return np.sum(x * x - 10 * np.cos(2 * np.pi * x) + 10)
+    #return sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
 
 # dim = 50
 DIM = 50
