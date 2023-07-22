@@ -58,9 +58,9 @@ def REX(x_parents, parents_n, children_n):
     
     for i in range(children_n):
         # 平均0, 分散sigmaの正規分布に従う乱数を生成
-        sigma = np.sqrt(1 / (children_n))
+        sigma = np.sqrt(1 / (parents_n))
         xi = np.random.normal(0, sigma, parents_n)
-        #xi = np.random.uniform(-sigma, sigma, n+k)
+        #xi = np.random.uniform(-sigma, sigma, parents_n)
         
         # 各親間の距離 * xi
         s = 0
@@ -84,7 +84,7 @@ CELL = 1000
 # 交叉率
 Pc = 0.7
 # 交叉個体数
-n_c = 300
+n_c = 500
 # 各ステップにおける親世代の置き換え数
 n_p = 50
 
