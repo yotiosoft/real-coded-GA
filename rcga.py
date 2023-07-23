@@ -149,6 +149,12 @@ def input_csv(filename):
             for j in range(DIM):
                 x[i][j] = float(strx[j])
         return g, x
+    
+# 親世代の個体群からランダムに個体を選択
+def select_parents(x_parents, n_p):
+    x_parent_index = np.random.randint(0, CELL, n_p)
+    x_parent = x_parents[x_parent_index]
+    return x_parent, x_parent_index
 
 # 評価関数
 def rosenbrock(x):
@@ -190,14 +196,13 @@ t_start = time.time()
 for g in range(g+1, steps):
     # 親世代をランダムに抽出
     # 抽出数 = n_p
-    x_parent_index = np.random.randint(0, CELL, n_p)
-    x_parent = x[x_parent_index]
+    x_parent, x_parent_index = select_parents(x, n_p)
 
     # 交叉
     # 個体数は n_c
     #child, child_values = blx_alpha(x_parent, n_c)
-    child, child_values = UNDX(x_parent, n_c)
-    #child, child_values = REX(x_parent, n_p, n_c)
+    #child, child_values = UNDX(x_parent, n_c)
+    child, child_values = REX(x_parent, n_p, n_c)
 
     # エリートを選択
     # エリート数 = n_p
