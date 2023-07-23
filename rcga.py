@@ -156,6 +156,13 @@ def select_parents(x_parents, n_p):
     x_parent = x_parents[x_parent_index]
     return x_parent, x_parent_index
 
+# 子世代からエリートを選択
+def select_elite(child, child_values, n_p):
+    # まずは child を評価値の小さい順にソート
+    child = child[np.argsort(child_values)]
+    # 次に 0 ~ np-1 番目の個体をエリートとする
+    return child[:n_p]
+
 # 評価関数
 def rosenbrock(x):
     sum = 0
@@ -205,22 +212,16 @@ for g in range(g+1, steps):
     child, child_values = REX(x_parent, n_p, n_c)
 
     # エリートを選択
-    # エリート数 = n_p
-    # まずは child を評価値の小さい順にソート
-    child = child[np.argsort(child_values)]
-    # 次に 0 ~ np-1 番目の個体をエリートとする
-    elite = child[:n_p]
-
-    # x_parent を elite で置き換える
-    x[x_parent_index] = elite
+    # 親世代をエリートに置き換える
+    x[x_parent_index] = select_elite(child, child_values, n_p)
 
     # 最小となる個体の評価値を出力
     x_values = [rosenbrock(x[i]) for i in range(CELL)]
     x_min = np.min(x_values)
     print("Generation: {0}, Minimum: {1}".format(g, x_min))
 
+    # 100 世代ごとに経過時間を出力
     if (g+1) % 100 == 0:
-        # print(x[0])
         t_end = time.time()
         print("Time: {1}".format(g, t_end - t_start))
         t_start = time.time()
