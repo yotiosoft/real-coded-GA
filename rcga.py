@@ -30,7 +30,7 @@ n_c = 300
 # 各ステップにおける親世代の置き換え数
 n_p = 50
 # 交叉モデル
-crossover = Crossover.REX
+crossover = Crossover.BLX_ALPHA
 # 世代交代モデル
 generation_gap = GenerationGap.JGG
 # 途中経過ファイル名
@@ -64,9 +64,9 @@ def blx_alpha_onecycle(x1, x2, pc, alpha):
 def blx_alpha(x_parents, nc, alpha=0.5):
     child = np.zeros((nc, DIM), dtype=np.float64)
     child_values = np.zeros(nc, dtype=np.float64)
+    crossover_x = np.random.randint(0, n_p, 2)
     for i in range(0, nc, 2):
         # ランダムに2つの個体を選択し、交叉率Pcの確率で交叉を行う
-        crossover_x = np.random.randint(0, n_p, 2)
         child[i], child[i+1] = blx_alpha_onecycle(x_parents[crossover_x[0]], x_parents[crossover_x[1]], Pc, alpha)
         child_values[i] = rosenbrock(child[i])
         child_values[i+1] = rosenbrock(child[i+1])
@@ -193,7 +193,24 @@ def select_elite(child, child_values, n_p):
 
 # 世代交代
 # MGG (minimum generation gap)
-def MGG(x, n_p, n_c):
+def MGG(x, n_c):
+    n_p = 2
+    # 親世代からランダムに抽出
+    # 抽出数 = n_p
+    x_parent, x_parent_index = select_parents(x, n_p)
+
+    # 交叉
+    # 個体数は n_c
+    if crossover == Crossover.BLX_ALPHA:
+        child, child_values = blx_alpha(x_parent, n_c)
+    elif crossover == Crossover.REX:
+        child, child_values = REX(x_parent, n_p, n_c)
+
+    # child を x_parent に追加
+    parents_and_children = np.concatenate([x_parent, child])
+
+    # エリートを選択
+    elite = select_elite(parents_and_children, child_values, n_p)
 
 # JGG (just generation gap)
 def JGG(x, n_p, n_c):
@@ -203,9 +220,10 @@ def JGG(x, n_p, n_c):
 
     # 交叉
     # 個体数は n_c
-    #child, child_values = blx_alpha(x_parent, n_c)
-    #child, child_values = UNDX(x_parent, n_c)
-    child, child_values = REX(x_parent, n_p, n_c)
+    if crossover == Crossover.BLX_ALPHA:
+        child, child_values = blx_alpha(x_parent, n_c)
+    elif crossover == Crossover.REX:
+        child, child_values = REX(x_parent, n_p, n_c)
 
     # エリートを選択
     # 親世代をエリートに置き換える
