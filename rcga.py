@@ -200,6 +200,7 @@ if len(sys.argv) >= 3:
 
 # 遺伝的アルゴリズムの実行
 t_start = time.time()
+min_values = np.zeros(steps, dtype=np.float64)
 for g in range(g+1, steps):
     # 親世代をランダムに抽出
     # 抽出数 = n_p
@@ -218,6 +219,7 @@ for g in range(g+1, steps):
     # 最小となる個体の評価値を出力
     x_values = [rosenbrock(x[i]) for i in range(CELL)]
     x_min = np.min(x_values)
+    min_values[g] = x_min
     print("Generation: {0}, Minimum: {1}".format(g, x_min))
 
     # 100 世代ごとに経過時間を出力
@@ -231,4 +233,8 @@ for g in range(g+1, steps):
         filename = "result_{0}.csv".format(g+1)
         output_csv(g, x, filename)
 
-# 最終的な個体群の中で最も評価関数の値が小さい個体を選択
+# 評価値の推移をグラフに出力
+plt.plot(min_values)
+plt.xlabel("Generation")
+plt.ylabel("Minimum")
+plt.show()
