@@ -67,7 +67,11 @@ def UNDX_onecycle(p1, p2, p3, alpha, beta):
     c2 = np.zeros(DIM, dtype=np.float64)
 
     m = (p1 + p2) / 2
-    e = (p2 - p1) / np.abs(p2 - p1)
+
+    e = np.zeros((DIM, DIM), dtype=np.float64)
+    e[0] = (p2 - p1) / np.abs(p2 - p1)
+    e[1:], _ = np.linalg.qr(e)[1:]
+    print(e)
     z = np.zeros(DIM, dtype=np.float64)
 
     s1 = alpha * norm(p1 - p2)
