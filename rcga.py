@@ -33,6 +33,8 @@ n_p = 50
 crossover = Crossover.REX
 # 世代交代モデル
 generation_gap = GenerationGap.JGG
+# 途中経過ファイル名
+filename_template = "results/{0}_{1}".format(crossover.value, generation_gap.value)
 
 # BLX-α 交叉
 def blx_alpha_onecycle(x1, x2, pc, alpha):
@@ -65,7 +67,7 @@ def blx_alpha(x_parents, nc, alpha=0.5):
     for i in range(0, nc, 2):
         # ランダムに2つの個体を選択し、交叉率Pcの確率で交叉を行う
         crossover_x = np.random.randint(0, n_p, 2)
-        child[i], child[i+1] = blx_alpha_one(x_parents[crossover_x[0]], x_parents[crossover_x[1]], Pc, alpha)
+        child[i], child[i+1] = blx_alpha_onecycle(x_parents[crossover_x[0]], x_parents[crossover_x[1]], Pc, alpha)
         child_values[i] = rosenbrock(child[i])
         child_values[i+1] = rosenbrock(child[i+1])
     return child, child_values
@@ -190,6 +192,10 @@ def select_elite(child, child_values, n_p):
     return child[:n_p]
 
 # 世代交代
+# MGG (minimum generation gap)
+def MGG(x, n_p, n_c):
+
+# JGG (just generation gap)
 def JGG(x, n_p, n_c):
     # 親世代をランダムに抽出
     # 抽出数 = n_p
@@ -228,7 +234,7 @@ if len(sys.argv) >= 2:
     steps = int(sys.argv[1])
 # 途中経過の読み込み
 if len(sys.argv) >= 3:
-    filename = "result_{0}.csv".format(sys.argv[2])
+    filename = "{0}_{1}.csv".format(filename_template, sys.argv[2])
     g, x = input_csv(filename)
 
 # 遺伝的アルゴリズムの実行
@@ -251,7 +257,7 @@ for g in range(g+1, steps):
 
     # 1000 世代ごとに途中経過を出力
     if (g+1) % 1000 == 0:
-        filename = "result_{0}.csv".format(g+1)
+        filename = "{0}_{1}.csv".format(filename_template, g+1)
         output_csv(g, x, filename)
 
 # 評価値の推移をグラフに出力
