@@ -70,8 +70,11 @@ def UNDX_onecycle(p1, p2, p3, alpha, beta):
 
     e = np.zeros((DIM, DIM), dtype=np.float64)
     e[0] = (p2 - p1) / np.abs(p2 - p1)
-    e[1:], _ = np.linalg.qr(e)[1:]
-    print(e)
+    # e0に垂直かつ線形独立な単位ベクトルを生成
+    for i in range(1, DIM):
+        e[i] = np.random.normal(0, 1, DIM)
+        e[i] -= np.dot(e[i], e[0]) * e[0]
+        e[i] /= norm(e[i])
     z = np.zeros(DIM, dtype=np.float64)
 
     s1 = alpha * norm(p1 - p2)
