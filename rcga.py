@@ -7,6 +7,32 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from concurrent import futures
 import matplotlib.pyplot as plt
+from enum import Enum
+
+# 交叉モデル
+class Crossover(Enum):
+    BLX_ALPHA = "blx_alpha" # ブレンド交叉
+    REX = "rex"             # 多親交叉
+
+# 世代交代モデル
+class GenerationGap(Enum):
+    MGG = "mgg"             # minimum generation gap
+    JGG = "jgg"             # just generation gap
+
+# dim = 50
+DIM = 50
+# cell = 1000
+CELL = 1000
+# 交叉率
+Pc = 0.7
+# 交叉個体数
+n_c = 300
+# 各ステップにおける親世代の置き換え数
+n_p = 50
+# 交叉モデル
+crossover = Crossover.REX
+# 世代交代モデル
+generation_gap = GenerationGap.JGG
 
 # BLX-α 交叉
 def blx_alpha_onecycle(x1, x2, pc, alpha):
@@ -163,6 +189,24 @@ def select_elite(child, child_values, n_p):
     # 次に 0 ~ np-1 番目の個体をエリートとする
     return child[:n_p]
 
+# 世代交代
+def JGG(x, n_p, n_c):
+    # 親世代をランダムに抽出
+    # 抽出数 = n_p
+    x_parent, x_parent_index = select_parents(x, n_p)
+
+    # 交叉
+    # 個体数は n_c
+    #child, child_values = blx_alpha(x_parent, n_c)
+    #child, child_values = UNDX(x_parent, n_c)
+    child, child_values = REX(x_parent, n_p, n_c)
+
+    # エリートを選択
+    # 親世代をエリートに置き換える
+    x[x_parent_index] = select_elite(child, child_values, n_p)
+
+    return x
+
 # 評価関数
 def rosenbrock(x):
     sum = 0
@@ -170,17 +214,6 @@ def rosenbrock(x):
         sum += 100 * (x[0] - x[i] ** 2) ** 2 + (1 - x[i]) ** 2
     return sum
     #return np.sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
-
-# dim = 50
-DIM = 50
-# cell = 1000
-CELL = 1000
-# 交叉率
-Pc = 0.7
-# 交叉個体数
-n_c = 300
-# 各ステップにおける親世代の置き換え数
-n_p = 50
 
 # x をランダムに初期化
 x = np.zeros((CELL, DIM), dtype=np.float64)
@@ -202,19 +235,7 @@ if len(sys.argv) >= 3:
 t_start = time.time()
 min_values = np.zeros(steps, dtype=np.float64)
 for g in range(g+1, steps):
-    # 親世代をランダムに抽出
-    # 抽出数 = n_p
-    x_parent, x_parent_index = select_parents(x, n_p)
-
-    # 交叉
-    # 個体数は n_c
-    #child, child_values = blx_alpha(x_parent, n_c)
-    #child, child_values = UNDX(x_parent, n_c)
-    child, child_values = REX(x_parent, n_p, n_c)
-
-    # エリートを選択
-    # 親世代をエリートに置き換える
-    x[x_parent_index] = select_elite(child, child_values, n_p)
+    x = JGG(x, n_p, n_c)
 
     # 最小となる個体の評価値を出力
     x_values = [rosenbrock(x[i]) for i in range(CELL)]
