@@ -51,15 +51,15 @@ def UNDX_distance(p1, p2, p3):
     ba = p1 - p2
     bp = p3 - p2
     if np.dot(ap, ab) < 0:
-        distance = ap
+        distance = norm(ap)
         neighbor_point = p1
     elif np.dot(bp, ba) < 0:
-        distance = p3 - p2
+        distance = norm(p3 - p2)
         neighbor_point = p2
     else:
-        ai_norm = np.dot(ap, ab)/ab
-        neighbor_point = p1 + (ab)/ab*ai_norm
-        distance = p3 - neighbor_point
+        ai_norm = np.dot(ap, ab)/norm(ab)
+        neighbor_point = p1 + (ab)/norm(ab)*ai_norm
+        distance = norm(p3 - neighbor_point)
     return distance
 
 def UNDX_onecycle(p1, p2, p3, alpha, beta):
@@ -68,17 +68,15 @@ def UNDX_onecycle(p1, p2, p3, alpha, beta):
 
     m = (p1 + p2) / 2
     e = (p2 - p1) / np.abs(p2 - p1)
-    z = np.zeros((DIM, DIM), dtype=np.float64)
+    z = np.zeros(DIM, dtype=np.float64)
 
-    s1 = alpha * abs(p1 - p2)
-    z[0] = [np.random.normal(0, s1[i]) for i in range(DIM)]
+    s1 = alpha * norm(p1 - p2)
+    z[0] = np.random.normal(0, s1)
     # p1, p2 の直線と p3 の距離
     d2 = UNDX_distance(p1, p2, p3)
     s2 = (beta * d2) / (np.sqrt(DIM))
-    print(s1)
-    print(s2)
     for i in range(1, DIM):
-        z[i] = [np.random.normal(0, s2[j]) for j in range(DIM)]
+        z[i] = np.random.normal(0, s2)
     
     zesum = z[0] * e[0]
     for k in range(1, DIM):
@@ -89,7 +87,7 @@ def UNDX_onecycle(p1, p2, p3, alpha, beta):
 
     return c1, c2
 
-def UNDX(x_parents, nc, alpha=0.5, beta=0.5):
+def UNDX(x_parents, nc, alpha=0.5, beta=0.35):
     child = np.zeros((nc, DIM), dtype=np.float64)
     child_values = np.zeros(nc, dtype=np.float64)
     for i in range(0, nc, 2):
