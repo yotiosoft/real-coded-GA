@@ -130,7 +130,7 @@ if len(sys.argv) >= 2:
     steps = int(sys.argv[1])
 # 途中経過の読み込み
 if len(sys.argv) >= 3:
-    filename = "rex_{0}.csv".format(sys.argv[2])
+    filename = "result_{0}.csv".format(sys.argv[2])
     g, x = input_csv(filename)
 
 # 遺伝的アルゴリズムの実行
@@ -169,7 +169,7 @@ for g in range(g+1, steps):
 
     # 1000 世代ごとに途中経過を出力
     if (g+1) % 1000 == 0:
-        filename = "rex_{0}.csv".format(g+1)
+        filename = "result_{0}.csv".format(g+1)
         output_csv(g, x, filename)
 
 # 最終的な個体群の中で最も評価関数の値が小さい個体を選択
