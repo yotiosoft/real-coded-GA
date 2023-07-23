@@ -30,9 +30,9 @@ n_c = 300
 # 各ステップにおける親世代の置き換え数
 n_p = 50
 # 交叉モデル
-crossover = Crossover.BLX_ALPHA
+crossover = Crossover.REX
 # 世代交代モデル
-generation_gap = GenerationGap.JGG
+generation_gap = GenerationGap.MGG
 # 途中経過ファイル名
 filename_template = "results/{0}_{1}".format(crossover.value, generation_gap.value)
 
@@ -63,14 +63,11 @@ def blx_alpha_onecycle(x1, x2, pc, alpha):
 
 def blx_alpha(x_parents, nc, alpha=0.5):
     child = np.zeros((nc, DIM), dtype=np.float64)
-    child_values = np.zeros(nc, dtype=np.float64)
     crossover_x = np.random.randint(0, n_p, 2)
     for i in range(0, nc, 2):
         # ランダムに2つの個体を選択し、交叉率Pcの確率で交叉を行う
         child[i], child[i+1] = blx_alpha_onecycle(x_parents[crossover_x[0]], x_parents[crossover_x[1]], Pc, alpha)
-        child_values[i] = rosenbrock(child[i])
-        child_values[i+1] = rosenbrock(child[i+1])
-    return child, child_values
+    return child
 
 # 単峰性正規分布交叉
 def UNDX_distance(p1, p2, p3):
@@ -136,7 +133,6 @@ def UNDX(x_parents, nc, alpha=0.5, beta=0.35):
 # 多親交叉
 def REX(x_parents, parents_n, children_n):
     x_children = np.zeros((children_n, DIM), dtype=np.float64)
-    x_children_values = np.zeros(children_n, dtype=np.float64)
 
     # 親の重心を求める
     x_g = np.average(x_parents, axis=0)
@@ -154,9 +150,8 @@ def REX(x_parents, parents_n, children_n):
 
         # 子個体を生成
         x_children[i] = x_g + s
-        x_children_values[i] = rosenbrock(x_children[i])
     
-    return x_children, x_children_values
+    return x_children
 
 # 途中経過を csv に出力
 def output_csv(g, x, filename):
@@ -209,8 +204,22 @@ def MGG(x, n_c):
     # child を x_parent に追加
     parents_and_children = np.concatenate([x_parent, child])
 
+    # child と parents を含めた評価値を計算
+    values = [rosenbrock(parents_and_children[i]) for i in range(n_p + n_c)]
+
     # エリートを選択
-    elite = select_elite(parents_and_children, child_values, n_p)
+    # 親世代をエリートに置き換える
+    elite = select_elite(child, values, 1)
+
+    # ルーレット選択
+    roulette_p = [values[i] / np.sum(values) for i in range(n_p + n_c)]
+    roulette_index = np.random.choice(n_p + n_c, 1, p=roulette_p)
+    roulette = parents_and_children[roulette_index]
+
+    # 親世代と入れ替え
+    x[x_parent_index] = [elite, roulette]
+
+    return x
 
 # JGG (just generation gap)
 def JGG(x, n_p, n_c):
@@ -221,9 +230,12 @@ def JGG(x, n_p, n_c):
     # 交叉
     # 個体数は n_c
     if crossover == Crossover.BLX_ALPHA:
-        child, child_values = blx_alpha(x_parent, n_c)
+        child = blx_alpha(x_parent, n_c)
     elif crossover == Crossover.REX:
-        child, child_values = REX(x_parent, n_p, n_c)
+        child = REX(x_parent, n_p, n_c)
+
+    # 子世代の評価値を計算
+    child_values = [rosenbrock(child[i]) for i in range(n_c)]
 
     # エリートを選択
     # 親世代をエリートに置き換える
