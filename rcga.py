@@ -188,8 +188,7 @@ def select_elite(child, child_values, n_p):
 
 # 世代交代
 # MGG (minimum generation gap)
-def MGG(x, n_c):
-    n_p = 2
+def MGG(x, n_p, n_c):
     # 親世代からランダムに抽出
     # 抽出数 = n_p
     x_parent, x_parent_index = select_parents(x, n_p)
@@ -197,9 +196,9 @@ def MGG(x, n_c):
     # 交叉
     # 個体数は n_c
     if crossover == Crossover.BLX_ALPHA:
-        child, child_values = blx_alpha(x_parent, n_c)
+        child = blx_alpha(x_parent, n_c)
     elif crossover == Crossover.REX:
-        child, child_values = REX(x_parent, n_p, n_c)
+        child = REX(x_parent, n_p, n_c)
 
     # child を x_parent に追加
     parents_and_children = np.concatenate([x_parent, child])
@@ -209,15 +208,18 @@ def MGG(x, n_c):
 
     # エリートを選択
     # 親世代をエリートに置き換える
-    elite = select_elite(child, values, 1)
+    elite_n = int(n_p/2)
+    elite = select_elite(parents_and_children, values, elite_n)
 
-    # ルーレット選択
-    roulette_p = [values[i] / np.sum(values) for i in range(n_p + n_c)]
-    roulette_index = np.random.choice(n_p + n_c, 1, p=roulette_p)
-    roulette = parents_and_children[roulette_index]
+    # ランク選択
+    ranking_n = n_p - elite_n
+    # 1位20%, 2位15%, 3位10%, 4位5%, 5位以下は全て{50/(n_p+n_c-4)}%
+    ranking_p = [0.2, 0.15, 0.1, 0.05] + [0.5/(n_p+n_c-4)] * (n_p+n_c-4)
+    ranking_index = np.random.choice(n_p + n_c, ranking_n, p=ranking_p)
+    ranking = parents_and_children[ranking_index]
 
     # 親世代と入れ替え
-    x[x_parent_index] = [elite, roulette]
+    x[x_parent_index] = np.concatenate([elite, ranking])
 
     return x
 
@@ -271,7 +273,10 @@ if len(sys.argv) >= 3:
 t_start = time.time()
 min_values = np.zeros(steps, dtype=np.float64)
 for g in range(g+1, steps):
-    x = JGG(x, n_p, n_c)
+    if generation_gap == GenerationGap.MGG:
+        x = MGG(x, n_p, n_c)
+    elif generation_gap == GenerationGap.JGG:
+        x = JGG(x, n_p, n_c)
 
     # 最小となる個体の評価値を出力
     x_values = [rosenbrock(x[i]) for i in range(CELL)]
@@ -294,4 +299,5 @@ for g in range(g+1, steps):
 plt.plot(min_values)
 plt.xlabel("Generation")
 plt.ylabel("Minimum")
+plt.savefig("{0}_min.png".format(filename_template))
 plt.show()
