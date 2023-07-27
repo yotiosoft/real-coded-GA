@@ -253,5 +253,20 @@ class RealCodedGA:
         plt.show()
 
 if __name__ == "__main__":
-    rcga = RealCodedGA(1000, 0.7, 300, 50, 0.5, Crossover.REX, GenerationGap.JGG)
-    rcga.run()
+    #rcga = RealCodedGA(1000, 0.7, 300, 50, 0.5, Crossover.REX, GenerationGap.JGG)
+    #rcga.run()
+
+    # 実験1
+    # 親個体数と子個体数固定、交叉手法・生存選択・交叉率・αを変えて実験
+    # 交叉手法 : BLX-α, REX
+    # 生存選択 : MGG, JGG
+    # 交叉率 : 0.5, 0.7, 0.9
+    # α : 0.25, 0.5, 0.75, 1.0
+    # 親個体数 : 50
+    # 子個体数 : 300
+    for crossover in [Crossover.BLX_ALPHA, Crossover.REX]:
+        for generation_gap in [GenerationGap.MGG, GenerationGap.JGG]:
+            for p_c in [0.5, 0.7, 0.9]:
+                for alpha in [0.25, 0.5, 0.75, 1.0]:
+                    rcga = RealCodedGA(1000, p_c, 300, 50, alpha, crossover, generation_gap)
+                    rcga.run()
