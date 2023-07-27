@@ -238,23 +238,16 @@ class RealCodedGA:
                 x = self.JGG(x)
 
             # 最小となる個体の評価値を計算
-            if g % 100 == 0:
-                x_values = [self.rosenbrock(x[i]) for i in range(self.cell)]
-                x_min = np.min(x_values)
-                min_values[g] = x_min
-                print("Generation: {0}, Minimum: {1}".format(g, x_min))
+            x_values = [self.rosenbrock(x[i]) for i in range(self.cell)]
+            x_min = np.min(x_values)
+            result_x = x[np.argmin(x_values)]
+            min_values[g] = x_min
+            print("Generation: {0}, Minimum: {1}".format(g, x_min))
 
             # もし誤差が閾値以下になったら終了
             if x_min < self.thold:
                 break
         finish_time = time.time()
-
-        # 最小となる個体の評価値を計算
-        x_values = [self.rosenbrock(x[i]) for i in range(self.cell)]
-        x_min = np.min(x_values)
-        result_x = x[np.argmin(x_values)]
-        min_values[g] = x_min
-        print("Generation: {0}, Minimum: {1} - finish.".format(g, x_min))
         
         # 結果を出力
         self.output_result(min_values, result_x, finish_time - start_time, self.filename_template)
