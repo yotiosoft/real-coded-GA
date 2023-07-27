@@ -22,7 +22,7 @@ class GenerationGap(Enum):
 
 # 実数値 GA クラス
 class RealCodedGA:
-    def __init__(self, cell, p_c, n_c, n_p, alpha, crossover, generation_gap, max_steps=10000, thold=0.0001):
+    def __init__(self, cell, p_c, n_c, n_p, alpha, crossover, generation_gap, max_steps=3000, thold=0.0001):
         # dim = 50
         self.DIM = 50
         # cell
@@ -200,8 +200,11 @@ class RealCodedGA:
         with open(log_filename, "w") as f:
             writer = csv.writer(f)
             for i in range(len(min_values)):
+                if min_values[i] == -1:
+                    continue
                 writer.writerow([i+1, min_values[i]])
             writer.writerow(["time", time])
+
         result_filename = "{0}_result.csv".format(filename)
         with open(result_filename, "w") as f:
             writer = csv.writer(f)
@@ -216,14 +219,16 @@ class RealCodedGA:
 
     # 初期化＆実行
     def run(self):
+        print("crossover: {0}, generation_gap: {1}, p_c: {2}, alpha: {3}".format(crossover.value, generation_gap.value, p_c, alpha))
+
         # x をランダムに初期化
         x = np.zeros((self.cell, self.DIM), dtype=np.float64)
         for i in range(self.cell):
             x[i] = np.random.uniform(-2.048, 2.048, self.DIM)
 
         # 遺伝的アルゴリズムの実行
-        min_values = np.zeros(self.max_steps, dtype=np.float64)
-        result_x = np.zeros(self.DIM, dtype=np.float64)
+        min_values = np.full(self.max_steps, -1, dtype=np.float64)
+        result_x = np.full(self.DIM, -1, dtype=np.float64)
         start_time = time.time()
         g = -1
         for g in range(g+1, self.max_steps):
@@ -233,16 +238,23 @@ class RealCodedGA:
                 x = self.JGG(x)
 
             # 最小となる個体の評価値を計算
-            x_values = [self.rosenbrock(x[i]) for i in range(self.cell)]
-            x_min = np.min(x_values)
-            result_x = x[np.argmin(x_values)]
-            min_values[g] = x_min
-            print("Generation: {0}, Minimum: {1}".format(g, x_min))
+            if g % 100 == 0:
+                x_values = [self.rosenbrock(x[i]) for i in range(self.cell)]
+                x_min = np.min(x_values)
+                min_values[g] = x_min
+                print("Generation: {0}, Minimum: {1}".format(g, x_min))
 
             # もし誤差が閾値以下になったら終了
             if x_min < self.thold:
                 break
         finish_time = time.time()
+
+        # 最小となる個体の評価値を計算
+        x_values = [self.rosenbrock(x[i]) for i in range(self.cell)]
+        x_min = np.min(x_values)
+        result_x = x[np.argmin(x_values)]
+        min_values[g] = x_min
+        print("Generation: {0}, Minimum: {1} - finish.".format(g, x_min))
         
         # 結果を出力
         self.output_result(min_values, result_x, finish_time - start_time, self.filename_template)
@@ -272,11 +284,9 @@ if __name__ == "__main__":
             if crossover == Crossover.BLX_ALPHA:
                 for p_c in [0.5, 0.7, 0.9]:
                     for alpha in [0.25, 0.5, 0.75, 1.0]:
-                        print("crossover: {0}, generation_gap: {1}, p_c: {2}, alpha: {3}".format(crossover.value, generation_gap.value, p_c, alpha))
                         rcga = RealCodedGA(1000, p_c, 600, 100, alpha, crossover, generation_gap)
                         rcgas.append(rcga)
             elif crossover == Crossover.REX:
-                print("crossover: {0}, generation_gap: {1}".format(crossover.value, generation_gap.value))
                 rcga = RealCodedGA(1000, 0, 600, 100, 0, crossover, generation_gap)
                 rcgas.append(rcga)
 
