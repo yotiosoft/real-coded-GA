@@ -279,17 +279,15 @@ if __name__ == "__main__":
                 for p_c in [0.5, 0.7, 0.9]:
                     # ファイルが既にないか確認
                     filename = "results/{0}_{1}_{2}_{3}_{4}_{5}".format(crossover.value, generation_gap.value, 1000, p_c, 600, 100)
-                    if os.path.exists(filename + "_log.csv"):
-                        continue
-                    rcga = RealCodedGA(1000, p_c, 600, 100, 0.5, crossover, generation_gap)
-                    rcgas.append(rcga)
+                    if not os.path.exists(filename + "_log.csv"):
+                        rcga = RealCodedGA(1000, p_c, 600, 100, 0.5, crossover, generation_gap)
+                        rcgas.append(rcga)
             elif crossover == Crossover.REX:
                 # ファイルが既にないか確認
                 filename = "results/{0}_{1}_{2}_{3}_{4}_{5}".format(crossover.value, generation_gap.value, 1000, 0, 600, 100)
-                if os.path.exists(filename + "_log.csv"):
-                    continue
-                rcga = RealCodedGA(1000, 0, 600, 100, 0, crossover, generation_gap)
-                rcgas.append(rcga)
+                if not os.path.exists(filename + "_log.csv"):
+                    rcga = RealCodedGA(1000, 0, 600, 100, 0, crossover, generation_gap)
+                    rcgas.append(rcga)
 
-    with ThreadPoolExecutor(max_workers=2) as executor:
+    with ThreadPoolExecutor(max_workers=4) as executor:
         executor.map(lambda rcga: rcga.run(), rcgas) 
