@@ -188,6 +188,18 @@ class RealCodedGA:
                 for j in range(self.DIM):
                     x[i][j] = float(strx[j])
             return g, x
+        
+    # 最適化結果の出力
+    def output_result(self, min_values, result_x, filename):
+        log_filename = "{0}_log.csv".format(filename)
+        with open(log_filename, "w") as f:
+            writer = csv.writer(f)
+            for i in range(len(min_values)):
+                writer.writerow([i+1, min_values[i]])
+        result_filename = "{0}_result.csv".format(filename)
+        with open(result_filename, "w") as f:
+            writer = csv.writer(f)
+            writer.writerow(result_x)
 
     # 評価関数
     def rosenbrock(self, x):
@@ -218,6 +230,7 @@ class RealCodedGA:
         # 遺伝的アルゴリズムの実行
         t_start = time.time()
         min_values = np.zeros(max_steps, dtype=np.float64)
+        result_x = np.zeros(self.DIM, dtype=np.float64)
         for g in range(g+1, max_steps):
             if self.generation_gap == GenerationGap.MGG:
                 x = self.MGG(x)
@@ -227,6 +240,7 @@ class RealCodedGA:
             # 最小となる個体の評価値を計算
             x_values = [self.rosenbrock(x[i]) for i in range(self.cell)]
             x_min = np.min(x_values)
+            result_x = x[np.argmin(x_values)]
             min_values[g] = x_min
             print("Generation: {0}, Minimum: {1}".format(g, x_min))
 
