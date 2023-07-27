@@ -37,7 +37,7 @@ class RealCodedGA:
         # 世代交代モデル
         self.generation_gap = generation_gap
         # 途中経過ファイル名
-        self.filename_template = "results/{0}_{1}_{2}_{3}_{4}".format(self.crossover.value, self.generation_gap.value, self.cell, self.n_c, self.n_p)
+        self.filename_template = "results/{0}_{1}_{2}_{3}_{4}_{5}".format(self.crossover.value, self.generation_gap.value, self.cell, self.p_c, self.n_c, self.n_p)
         # 誤差の閾値
         self.thold = thold
 
