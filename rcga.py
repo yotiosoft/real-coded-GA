@@ -4,8 +4,6 @@ import math
 import csv
 import sys
 import time
-from concurrent.futures import ThreadPoolExecutor
-from concurrent import futures
 import matplotlib.pyplot as plt
 from enum import Enum
 
@@ -43,21 +41,21 @@ def blx_alpha_onecycle(x1, x2, pc, alpha):
     # 交叉率pcの確率で交叉を行う
     crossover_index = np.random.choice([True, False], size=DIM, p=[pc, 1 - pc])
     
-    for i in range(DIM):
-        if crossover_index[i]:
+    for j in range(DIM):
+        if crossover_index[j]:
             # c1, c2 の各次元について、x1, x2 の値の小さい方から
             # (1 + 2 * alpha) 倍した値から alpha 倍した値を引く
-            c1[i] = np.random.uniform(
-                min(x1[i], x2[i]) - alpha * abs(x1[i] - x2[i]), 
-                max(x1[i], x2[i]) + alpha * abs(x1[i] - x2[i])
+            c1[j] = np.random.uniform(
+                min(x1[j], x2[j]) - alpha * abs(x1[j] - x2[j]), 
+                max(x1[j], x2[j]) + alpha * abs(x1[j] - x2[j])
             )
-            c2[i] = np.random.uniform(
-                min(x1[i], x2[i]) - alpha * abs(x1[i] - x2[i]), 
-                max(x1[i], x2[i]) + alpha * abs(x1[i] - x2[i])
+            c2[j] = np.random.uniform(
+                min(x1[j], x2[j]) - alpha * abs(x1[j] - x2[j]), 
+                max(x1[j], x2[j]) + alpha * abs(x1[j] - x2[j])
             )
         else:
-            c1[i] = x1[i]
-            c2[i] = x2[i]
+            c1[j] = x1[j]
+            c2[j] = x2[j]
 
     return c1, c2
 
