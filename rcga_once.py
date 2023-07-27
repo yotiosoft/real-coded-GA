@@ -251,56 +251,51 @@ def rosenbrock(x):
     return sum
     #return np.sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
 
-# 初期化＆実行
-def run_ga(cell, p_c, n_p, n_c, crossover, generation_gap, filename_template):
-    # 途中経過ファイル名
-    filename_template = "results/{0}_{1}".format(crossover.value, generation_gap.value)
+# x をランダムに初期化
+x = np.zeros((CELL, DIM), dtype=np.float64)
+for i in range(CELL):
+    x[i] = np.random.uniform(-2.048, 2.048, DIM)
 
-    # x をランダムに初期化
-    x = np.zeros((CELL, DIM), dtype=np.float64)
-    for i in range(CELL):
-        x[i] = np.random.uniform(-2.048, 2.048, DIM)
+# 引数
+# 総ステップ数の読み込み
+steps = 10000
+g = -1
+if len(sys.argv) >= 2:
+    steps = int(sys.argv[1])
+# 途中経過の読み込み
+if len(sys.argv) >= 3:
+    filename = "{0}_{1}.csv".format(filename_template, sys.argv[2])
+    g, x = input_csv(filename)
 
-    # 引数
-    # 総ステップ数の読み込み
-    steps = 10000
-    g = -1
-    if len(sys.argv) >= 2:
-        steps = int(sys.argv[1])
-    # 途中経過の読み込み
-    if len(sys.argv) >= 3:
-        filename = "{0}_{1}.csv".format(filename_template, sys.argv[2])
-        g, x = input_csv(filename)
+# 遺伝的アルゴリズムの実行
+t_start = time.time()
+min_values = np.zeros(steps, dtype=np.float64)
+for g in range(g+1, steps):
+    if generation_gap == GenerationGap.MGG:
+        x = MGG(x, n_p, n_c)
+    elif generation_gap == GenerationGap.JGG:
+        x = JGG(x, n_p, n_c)
 
-    # 遺伝的アルゴリズムの実行
-    t_start = time.time()
-    min_values = np.zeros(steps, dtype=np.float64)
-    for g in range(g+1, steps):
-        if generation_gap == GenerationGap.MGG:
-            x = MGG(x, n_p, n_c)
-        elif generation_gap == GenerationGap.JGG:
-            x = JGG(x, n_p, n_c)
+    # 最小となる個体の評価値を出力
+    x_values = [rosenbrock(x[i]) for i in range(CELL)]
+    x_min = np.min(x_values)
+    min_values[g] = x_min
+    print("Generation: {0}, Minimum: {1}".format(g, x_min))
 
-        # 最小となる個体の評価値を出力
-        x_values = [rosenbrock(x[i]) for i in range(CELL)]
-        x_min = np.min(x_values)
-        min_values[g] = x_min
-        print("Generation: {0}, Minimum: {1}".format(g, x_min))
+    # 100 世代ごとに経過時間を出力
+    if (g+1) % 100 == 0:
+        t_end = time.time()
+        print("Time: {1}".format(g, t_end - t_start))
+        t_start = time.time()
 
-        # 100 世代ごとに経過時間を出力
-        if (g+1) % 100 == 0:
-            t_end = time.time()
-            print("Time: {1}".format(g, t_end - t_start))
-            t_start = time.time()
+    # 1000 世代ごとに途中経過を出力
+    if (g+1) % 1000 == 0:
+        filename = "{0}_{1}.csv".format(filename_template, g+1)
+        output_csv(g, x, filename)
 
-        # 1000 世代ごとに途中経過を出力
-        if (g+1) % 1000 == 0:
-            filename = "{0}_{1}.csv".format(filename_template, g+1)
-            output_csv(g, x, filename)
-
-    # 評価値の推移をグラフに出力
-    plt.plot(min_values)
-    plt.xlabel("Generation")
-    plt.ylabel("Minimum")
-    plt.savefig("{0}_min.png".format(filename_template))
-    #plt.show()
+# 評価値の推移をグラフに出力
+plt.plot(min_values)
+plt.xlabel("Generation")
+plt.ylabel("Minimum")
+plt.savefig("{0}_min.png".format(filename_template))
+plt.show()
