@@ -3,6 +3,7 @@ from numpy.linalg import norm
 import math
 import csv
 import sys
+import time
 import matplotlib.pyplot as plt
 from enum import Enum
 
@@ -191,12 +192,13 @@ class RealCodedGA:
             return g, x
         
     # 最適化結果の出力
-    def output_result(self, min_values, result_x, filename):
+    def output_result(self, min_values, result_x, time, filename):
         log_filename = "{0}_log.csv".format(filename)
         with open(log_filename, "w") as f:
             writer = csv.writer(f)
             for i in range(len(min_values)):
                 writer.writerow([i+1, min_values[i]])
+            writer.writerow(["time", time])
         result_filename = "{0}_result.csv".format(filename)
         with open(result_filename, "w") as f:
             writer = csv.writer(f)
@@ -219,6 +221,7 @@ class RealCodedGA:
         # 遺伝的アルゴリズムの実行
         min_values = np.zeros(self.max_steps, dtype=np.float64)
         result_x = np.zeros(self.DIM, dtype=np.float64)
+        start_time = time.time()
         g = -1
         for g in range(g+1, self.max_steps):
             if self.generation_gap == GenerationGap.MGG:
@@ -236,16 +239,17 @@ class RealCodedGA:
             # もし誤差が閾値以下になったら終了
             if x_min < self.thold:
                 break
+        finish_time = time.time()
         
         # 結果を出力
-        self.output_result(min_values, result_x, self.filename_template)
+        self.output_result(min_values, result_x, finish_time - start_time, self.filename_template)
 
         # 評価値の推移をグラフに出力
         plt.plot(min_values)
         plt.xlabel("Generation")
         plt.ylabel("Minimum")
         plt.savefig("{0}_min.png".format(self.filename_template))
-        plt.show()
+        #plt.show()
 
 if __name__ == "__main__":
     #rcga = RealCodedGA(1000, 0.7, 600, 100, 0.5, Crossover.REX, GenerationGap.JGG)
@@ -261,7 +265,13 @@ if __name__ == "__main__":
     # 子個体数 : 300
     for crossover in [Crossover.BLX_ALPHA, Crossover.REX]:
         for generation_gap in [GenerationGap.MGG, GenerationGap.JGG]:
-            for p_c in [0.5, 0.7, 0.9]:
-                for alpha in [0.25, 0.5, 0.75, 1.0]:
-                    rcga = RealCodedGA(1000, p_c, 600, 100, alpha, crossover, generation_gap)
-                    rcga.run()
+            if crossover == Crossover.BLX_ALPHA:
+                for p_c in [0.5, 0.7, 0.9]:
+                    for alpha in [0.25, 0.5, 0.75, 1.0]:
+                        print("crossover: {0}, generation_gap: {1}, p_c: {2}, alpha: {3}".format(crossover.value, generation_gap.value, p_c, alpha))
+                        rcga = RealCodedGA(1000, p_c, 600, 100, alpha, crossover, generation_gap)
+                        rcga.run()
+            elif crossover == Crossover.REX:
+                print("crossover: {0}, generation_gap: {1}".format(crossover.value, generation_gap.value))
+                rcga = RealCodedGA(1000, 0, 600, 100, 0, crossover, generation_gap)
+                rcga.run()
