@@ -68,7 +68,7 @@ class RealCodedGA:
 
     def blx_alpha(self, x_parents):
         child = np.zeros((self.n_c, self.DIM), dtype=np.float64)
-        crossover_x = np.random.randint(0, n_p, 2)
+        crossover_x = np.random.randint(0, self.n_p, 2)
         for i in range(0, self.n_c, 2):
             # ランダムに2つの個体を選択し、交叉率p_cの確率で交叉を行う
             child[i], child[i+1] = self.blx_alpha_onecycle(x_parents[crossover_x[0]], x_parents[crossover_x[1]])
@@ -185,7 +185,7 @@ class RealCodedGA:
             g = int(lines[0])-1
             for i in range(self.cell):
                 strx = lines[i+1].split(",")
-                for j in range(DIM):
+                for j in range(self.DIM):
                     x[i][j] = float(strx[j])
             return g, x
 
