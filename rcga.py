@@ -4,6 +4,7 @@ import math
 import csv
 import sys
 import time
+import os
 import matplotlib.pyplot as plt
 from concurrent.futures import ThreadPoolExecutor
 from concurrent import futures
@@ -276,12 +277,19 @@ if __name__ == "__main__":
         for generation_gap in [GenerationGap.MGG, GenerationGap.JGG]:
             if crossover == Crossover.BLX_ALPHA:
                 for p_c in [0.5, 0.7, 0.9]:
-                    for alpha in [0.25, 0.5, 0.75, 1.0]:
-                        rcga = RealCodedGA(1000, p_c, 600, 100, alpha, crossover, generation_gap)
-                        rcgas.append(rcga)
+                    # ファイルが既にないか確認
+                    filename = "results/{0}_{1}_{2}_{3}_{4}_{5}".format(crossover.value, generation_gap.value, 1000, p_c, 600, 100)
+                    if os.path.exists(filename + "_log.csv"):
+                        continue
+                    rcga = RealCodedGA(1000, p_c, 600, 100, 0.5, crossover, generation_gap)
+                    rcgas.append(rcga)
             elif crossover == Crossover.REX:
+                # ファイルが既にないか確認
+                filename = "results/{0}_{1}_{2}_{3}_{4}_{5}".format(crossover.value, generation_gap.value, 1000, 0, 600, 100)
+                if os.path.exists(filename + "_log.csv"):
+                    continue
                 rcga = RealCodedGA(1000, 0, 600, 100, 0, crossover, generation_gap)
                 rcgas.append(rcga)
 
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    with ThreadPoolExecutor(max_workers=2) as executor:
         executor.map(lambda rcga: rcga.run(), rcgas) 
