@@ -19,7 +19,7 @@ class GenerationGap(Enum):
 
 # 実数値 GA クラス
 class RealCodedGA:
-    def __init__(self, cell, p_c, n_c, n_p, crossover, generation_gap, thold=0.0001):
+    def __init__(self, cell, p_c, n_c, n_p, alpha, crossover, generation_gap, thold=0.0001):
         # dim = 50
         self.DIM = 50
         # cell
@@ -30,6 +30,8 @@ class RealCodedGA:
         self.n_c = n_c
         # 各ステップにおける親世代の置き換え数
         self.n_p = n_p
+        # BLX-α 交叉のα
+        self.alpha = alpha
         # 交叉モデル
         self.crossover = crossover
         # 世代交代モデル
@@ -40,7 +42,7 @@ class RealCodedGA:
         self.thold = thold
 
     # BLX-α 交叉
-    def blx_alpha_onecycle(self, x1, x2, alpha):
+    def blx_alpha_onecycle(self, x1, x2):
         c1 = np.zeros(self.DIM, dtype=np.float64)
         c2 = np.zeros(self.DIM, dtype=np.float64)
         # 交叉率p_cの確率で交叉を行う
@@ -51,12 +53,12 @@ class RealCodedGA:
                 # c1, c2 の各次元について、x1, x2 の値の小さい方から
                 # (1 + 2 * alpha) 倍した値から alpha 倍した値を引く
                 c1[j] = np.random.uniform(
-                    min(x1[j], x2[j]) - alpha * abs(x1[j] - x2[j]), 
-                    max(x1[j], x2[j]) + alpha * abs(x1[j] - x2[j])
+                    min(x1[j], x2[j]) - self.alpha * abs(x1[j] - x2[j]), 
+                    max(x1[j], x2[j]) + self.alpha * abs(x1[j] - x2[j])
                 )
                 c2[j] = np.random.uniform(
-                    min(x1[j], x2[j]) - alpha * abs(x1[j] - x2[j]), 
-                    max(x1[j], x2[j]) + alpha * abs(x1[j] - x2[j])
+                    min(x1[j], x2[j]) - self.alpha * abs(x1[j] - x2[j]), 
+                    max(x1[j], x2[j]) + self.alpha * abs(x1[j] - x2[j])
                 )
             else:
                 c1[j] = x1[j]
@@ -64,12 +66,12 @@ class RealCodedGA:
 
         return c1, c2
 
-    def blx_alpha(self, x_parents, nc, alpha=0.5):
-        child = np.zeros((nc, self.DIM), dtype=np.float64)
+    def blx_alpha(self, x_parents):
+        child = np.zeros((self.n_c, self.DIM), dtype=np.float64)
         crossover_x = np.random.randint(0, n_p, 2)
-        for i in range(0, nc, 2):
+        for i in range(0, self.n_c, 2):
             # ランダムに2つの個体を選択し、交叉率p_cの確率で交叉を行う
-            child[i], child[i+1] = self.blx_alpha_onecycle(x_parents[crossover_x[0]], x_parents[crossover_x[1]], alpha)
+            child[i], child[i+1] = self.blx_alpha_onecycle(x_parents[crossover_x[0]], x_parents[crossover_x[1]])
         return child
 
     # 多親交叉
@@ -102,7 +104,7 @@ class RealCodedGA:
         return x_parent, x_parent_index
 
     # 子世代からエリートを選択
-    def select_elite(self, hild, child_values, n_p):
+    def select_elite(self, child, child_values, n_p):
         # まずは child を評価値の小さい順にソート
         child = child[np.argsort(child_values)]
         # 次に 0 ~ np-1 番目の個体をエリートとする
@@ -113,25 +115,25 @@ class RealCodedGA:
     def MGG(self, x):
         # 親世代からランダムに抽出
         # 抽出数 = n_p
-        x_parent, x_parent_index = select_parents(x, self.n_p)
+        x_parent, x_parent_index = self.select_parents(x, self.n_p)
 
         # 交叉
         # 個体数は n_c
         if self.crossover == Crossover.BLX_ALPHA:
-            child = blx_alpha(x_parent, self.n_c)
+            child = self.blx_alpha(x_parent)
         elif self.crossover == Crossover.REX:
-            child = REX(x_parent, self.n_p, self.n_c)
+            child = self.REX(x_parent, self.n_p, self.n_c)
 
         # child を x_parent に追加
         parents_and_children = np.concatenate([x_parent, child])
 
         # child と parents を含めた評価値を計算
-        values = [rosenbrock(parents_and_children[i]) for i in range(self.n_p + self.n_c)]
+        values = [self.rosenbrock(parents_and_children[i]) for i in range(self.n_p + self.n_c)]
 
         # エリートを選択
         # 親世代をエリートに置き換える
         elite_n = int(self.n_p/2)
-        elite = select_elite(parents_and_children, values, elite_n)
+        elite = self.select_elite(parents_and_children, values, elite_n)
 
         # ランク選択
         ranking_n = self.n_p - elite_n
@@ -149,21 +151,21 @@ class RealCodedGA:
     def JGG(self, x):
         # 親世代をランダムに抽出
         # 抽出数 = n_p
-        x_parent, x_parent_index = select_parents(x, self.n_p)
+        x_parent, x_parent_index = self.select_parents(x, self.n_p)
 
         # 交叉
         # 個体数は n_c
         if self.crossover == Crossover.BLX_ALPHA:
-            child = blx_alpha(x_parent, self.n_c)
+            child = self.blx_alpha(x_parent)
         elif self.crossover == Crossover.REX:
-            child = REX(x_parent, self.n_p, self.n_c)
+            child = self.REX(x_parent, self.n_p, self.n_c)
 
         # 子世代の評価値を計算
-        child_values = [rosenbrock(child[i]) for i in range(self.n_c)]
+        child_values = [self.rosenbrock(child[i]) for i in range(self.n_c)]
 
         # エリートを選択
         # 親世代をエリートに置き換える
-        x[x_parent_index] = select_elite(child, child_values, self.n_p)
+        x[x_parent_index] = self.select_elite(child, child_values, self.n_p)
 
         return x
 
@@ -211,19 +213,19 @@ class RealCodedGA:
         # 途中経過の読み込み
         if len(sys.argv) >= 3:
             filename = "{0}_{1}.csv".format(self.filename_template, sys.argv[2])
-            g, x = input_csv(filename)
+            g, x = self.input_csv(filename)
 
         # 遺伝的アルゴリズムの実行
         t_start = time.time()
         min_values = np.zeros(max_steps, dtype=np.float64)
         for g in range(g+1, max_steps):
             if self.generation_gap == GenerationGap.MGG:
-                x = self.MGG(x, self.n_p, self.n_c)
+                x = self.MGG(x)
             elif self.generation_gap == GenerationGap.JGG:
-                x = self.JGG(x, self.n_p, self.n_c)
+                x = self.JGG(x)
 
             # 最小となる個体の評価値を計算
-            x_values = [rosenbrock(x[i]) for i in range(self.cell)]
+            x_values = [self.rosenbrock(x[i]) for i in range(self.cell)]
             x_min = np.min(x_values)
             min_values[g] = x_min
             print("Generation: {0}, Minimum: {1}".format(g, x_min))
@@ -241,7 +243,7 @@ class RealCodedGA:
             # 1000 世代ごとに途中経過を出力
             if (g+1) % 1000 == 0:
                 filename = "{0}_{1}.csv".format(self.filename_template, g+1)
-                output_csv(g, x, filename)
+                self.output_csv(g, x, filename)
 
         # 評価値の推移をグラフに出力
         plt.plot(min_values)
@@ -251,5 +253,5 @@ class RealCodedGA:
         plt.show()
 
 if __name__ == "__main__":
-    rcga = RealCodedGA(1000, 0.7, 300, 50, Crossover.REX, GenerationGap.JGG)
+    rcga = RealCodedGA(1000, 0.7, 300, 50, 0.5, Crossover.REX, GenerationGap.JGG)
     rcga.run()
