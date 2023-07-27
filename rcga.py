@@ -5,6 +5,9 @@ import csv
 import sys
 import time
 import matplotlib.pyplot as plt
+from concurrent.futures import ThreadPoolExecutor
+from concurrent import futures
+
 from enum import Enum
 
 # 交叉モデル
@@ -263,6 +266,7 @@ if __name__ == "__main__":
     # α : 0.25, 0.5, 0.75, 1.0
     # 親個体数 : 50
     # 子個体数 : 300
+    rcgas = []
     for crossover in [Crossover.BLX_ALPHA, Crossover.REX]:
         for generation_gap in [GenerationGap.MGG, GenerationGap.JGG]:
             if crossover == Crossover.BLX_ALPHA:
@@ -270,8 +274,11 @@ if __name__ == "__main__":
                     for alpha in [0.25, 0.5, 0.75, 1.0]:
                         print("crossover: {0}, generation_gap: {1}, p_c: {2}, alpha: {3}".format(crossover.value, generation_gap.value, p_c, alpha))
                         rcga = RealCodedGA(1000, p_c, 600, 100, alpha, crossover, generation_gap)
-                        rcga.run()
+                        rcgas.append(rcga)
             elif crossover == Crossover.REX:
                 print("crossover: {0}, generation_gap: {1}".format(crossover.value, generation_gap.value))
                 rcga = RealCodedGA(1000, 0, 600, 100, 0, crossover, generation_gap)
-                rcga.run()
+                rcgas.append(rcga)
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        executor.map(lambda rcga: rcga.run(), rcgas) 
