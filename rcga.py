@@ -3,7 +3,6 @@ from numpy.linalg import norm
 import math
 import csv
 import sys
-import time
 import matplotlib.pyplot as plt
 from enum import Enum
 
@@ -19,7 +18,7 @@ class GenerationGap(Enum):
 
 # 実数値 GA クラス
 class RealCodedGA:
-    def __init__(self, cell, p_c, n_c, n_p, alpha, crossover, generation_gap, thold=0.0001):
+    def __init__(self, cell, p_c, n_c, n_p, alpha, crossover, generation_gap, max_steps=10000, thold=0.0001):
         # dim = 50
         self.DIM = 50
         # cell
@@ -38,6 +37,8 @@ class RealCodedGA:
         self.generation_gap = generation_gap
         # 途中経過ファイル名
         self.filename_template = "results/{0}_{1}_{2}_{3}_{4}_{5}".format(self.crossover.value, self.generation_gap.value, self.cell, self.p_c, self.n_c, self.n_p)
+        # 最大ステップ数
+        self.max_steps = max_steps
         # 誤差の閾値
         self.thold = thold
 
@@ -207,7 +208,6 @@ class RealCodedGA:
         for i in range(1, self.DIM):
             sum += 100 * (x[0] - x[i] ** 2) ** 2 + (1 - x[i]) ** 2
         return sum
-        #return np.sum(100 * (x[1:] - x[:-1] ** 2) ** 2 + (1 - x[:-1]) ** 2)
 
     # 初期化＆実行
     def run(self):
@@ -216,22 +216,11 @@ class RealCodedGA:
         for i in range(self.cell):
             x[i] = np.random.uniform(-2.048, 2.048, self.DIM)
 
-        # 引数
-        # 総ステップ数の読み込み
-        max_steps = 10000
-        g = -1
-        if len(sys.argv) >= 2:
-            max_steps = int(sys.argv[1])
-        # 途中経過の読み込み
-        if len(sys.argv) >= 3:
-            filename = "{0}_{1}.csv".format(self.filename_template, sys.argv[2])
-            g, x = self.input_csv(filename)
-
         # 遺伝的アルゴリズムの実行
-        t_start = time.time()
-        min_values = np.zeros(max_steps, dtype=np.float64)
+        min_values = np.zeros(self.max_steps, dtype=np.float64)
         result_x = np.zeros(self.DIM, dtype=np.float64)
-        for g in range(g+1, max_steps):
+        g = -1
+        for g in range(g+1, self.max_steps):
             if self.generation_gap == GenerationGap.MGG:
                 x = self.MGG(x)
             elif self.generation_gap == GenerationGap.JGG:
@@ -247,17 +236,9 @@ class RealCodedGA:
             # もし誤差が閾値以下になったら終了
             if x_min < self.thold:
                 break
-
-            # 100 世代ごとに経過時間を出力
-            if (g+1) % 100 == 0:
-                t_end = time.time()
-                print("Time: {1}".format(g, t_end - t_start))
-                t_start = time.time()
-
-            # 1000 世代ごとに途中経過を出力
-            if (g+1) % 1000 == 0:
-                filename = "{0}_{1}.csv".format(self.filename_template, g+1)
-                self.output_csv(g, x, filename)
+        
+        # 結果を出力
+        self.output_result(min_values, result_x, self.filename_template)
 
         # 評価値の推移をグラフに出力
         plt.plot(min_values)
@@ -267,7 +248,7 @@ class RealCodedGA:
         plt.show()
 
 if __name__ == "__main__":
-    #rcga = RealCodedGA(1000, 0.7, 300, 50, 0.5, Crossover.REX, GenerationGap.JGG)
+    #rcga = RealCodedGA(1000, 0.7, 600, 100, 0.5, Crossover.REX, GenerationGap.JGG)
     #rcga.run()
 
     # 実験1
@@ -282,5 +263,5 @@ if __name__ == "__main__":
         for generation_gap in [GenerationGap.MGG, GenerationGap.JGG]:
             for p_c in [0.5, 0.7, 0.9]:
                 for alpha in [0.25, 0.5, 0.75, 1.0]:
-                    rcga = RealCodedGA(1000, p_c, 300, 50, alpha, crossover, generation_gap)
+                    rcga = RealCodedGA(1000, p_c, 600, 100, alpha, crossover, generation_gap)
                     rcga.run()
