@@ -23,7 +23,7 @@ class GenerationGap(Enum):
 
 # 実数値 GA クラス
 class RealCodedGA:
-    def __init__(self, cell, p_c, n_c, n_p, alpha, crossover, generation_gap, max_steps=3000, thold=0.0001):
+    def __init__(self, cell, p_c, n_c, n_p, alpha, crossover, generation_gap, max_steps=10000, thold=0.0001):
         # dim = 50
         self.DIM = 50
         # cell
@@ -201,8 +201,6 @@ class RealCodedGA:
         with open(log_filename, "w") as f:
             writer = csv.writer(f)
             for i in range(len(min_values)):
-                if min_values[i] == -1:
-                    continue
                 writer.writerow([i+1, min_values[i]])
             writer.writerow(["time", time])
 
@@ -220,7 +218,7 @@ class RealCodedGA:
 
     # 初期化＆実行
     def run(self):
-        print("crossover: {0}, generation_gap: {1}, p_c: {2}, alpha: {3}".format(crossover.value, generation_gap.value, p_c, alpha))
+        print("crossover: {0}, generation_gap: {1}, p_c: {2}, alpha: {3}".format(self.crossover.value, self.generation_gap.value, self.p_c, self.alpha))
 
         # x をランダムに初期化
         x = np.zeros((self.cell, self.DIM), dtype=np.float64)
@@ -228,7 +226,7 @@ class RealCodedGA:
             x[i] = np.random.uniform(-2.048, 2.048, self.DIM)
 
         # 遺伝的アルゴリズムの実行
-        min_values = np.full(self.max_steps, -1, dtype=np.float64)
+        min_values = []
         result_x = np.full(self.DIM, -1, dtype=np.float64)
         start_time = time.time()
         g = -1
@@ -242,8 +240,8 @@ class RealCodedGA:
             x_values = [self.rosenbrock(x[i]) for i in range(self.cell)]
             x_min = np.min(x_values)
             result_x = x[np.argmin(x_values)]
-            min_values[g] = x_min
-            print("Generation: {0}, Minimum: {1}".format(g, x_min))
+            min_values.append(x_min)
+            print("n_p: {0}, n_c: {1}, Generation: {2}, Minimum: {3}".format(n_p, n_c, g, x_min))
 
             # もし誤差が閾値以下になったら終了
             if x_min < self.thold:
@@ -254,6 +252,7 @@ class RealCodedGA:
         self.output_result(min_values, result_x, finish_time - start_time, self.filename_template)
 
         # 評価値の推移をグラフに出力
+        plt.clf()
         plt.plot(min_values)
         plt.xlabel("Generation")
         plt.ylabel("Minimum")
@@ -261,8 +260,18 @@ class RealCodedGA:
         #plt.show()
 
 if __name__ == "__main__":
-    #rcga = RealCodedGA(1000, 0.7, 600, 100, 0.5, Crossover.REX, GenerationGap.JGG)
+    #rcga = RealCodedGA(1000, 0.7, 600, 100, 0.5, Crossover.REX, GenerationGap.JGG, 100)
     #rcga.run()
+
+    # 実験2
+    for n_p in [50, 100, 150, 300, 500]:
+        for n_c in [100, 300, 600, 900, 1200, 1500, 2000]:
+            if n_p > n_c:
+                continue
+            filename = "results/{0}_{1}_{2}_{3}_{4}_{5}".format(Crossover.REX.value, GenerationGap.JGG.value, 1000, 0, n_c, n_p)
+            if not os.path.exists(filename + "_log.csv"):
+                rcga = RealCodedGA(1000, 0, n_c, n_p, 0.5, Crossover.REX, GenerationGap.JGG)
+                rcga.run()
 
     # 実験1
     # 親個体数と子個体数固定、交叉手法・生存選択・交叉率・αを変えて実験
@@ -272,7 +281,8 @@ if __name__ == "__main__":
     # α : 0.25, 0.5, 0.75, 1.0
     # 親個体数 : 50
     # 子個体数 : 300
-    rcgas = []
+    #rcgas = []
+    '''
     for crossover in [Crossover.BLX_ALPHA, Crossover.REX]:
         for generation_gap in [GenerationGap.MGG, GenerationGap.JGG]:
             if crossover == Crossover.BLX_ALPHA:
@@ -281,13 +291,16 @@ if __name__ == "__main__":
                     filename = "results/{0}_{1}_{2}_{3}_{4}_{5}".format(crossover.value, generation_gap.value, 1000, p_c, 600, 100)
                     if not os.path.exists(filename + "_log.csv"):
                         rcga = RealCodedGA(1000, p_c, 600, 100, 0.5, crossover, generation_gap)
-                        rcgas.append(rcga)
+                        rcga.run()
+                        #rcgas.append(rcga)
             elif crossover == Crossover.REX:
                 # ファイルが既にないか確認
                 filename = "results/{0}_{1}_{2}_{3}_{4}_{5}".format(crossover.value, generation_gap.value, 1000, 0, 600, 100)
                 if not os.path.exists(filename + "_log.csv"):
                     rcga = RealCodedGA(1000, 0, 600, 100, 0, crossover, generation_gap)
-                    rcgas.append(rcga)
+                    rcga.run()
+                    #rcgas.append(rcga)
 
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        executor.map(lambda rcga: rcga.run(), rcgas) 
+    #with ThreadPoolExecutor(max_workers=4) as executor:
+    #    executor.map(lambda rcga: rcga.run(), rcgas) 
+    '''
