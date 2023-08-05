@@ -11,11 +11,12 @@ from concurrent import futures
 
 from enum import Enum
 
+# 交叉モデル、世代交代モデルの列挙型
+# パラメータでの指定に使用
 # 交叉モデル
 class Crossover(Enum):
     BLX_ALPHA = "blx_alpha" # ブレンド交叉
     REX = "rex"             # 多親交叉
-
 # 世代交代モデル
 class GenerationGap(Enum):
     MGG = "mgg"             # minimum generation gap
@@ -71,7 +72,6 @@ class RealCodedGA:
                 c2[j] = x2[j]
 
         return c1, c2
-
     def blx_alpha(self, x_parents):
         child = np.zeros((self.n_c, self.DIM), dtype=np.float64)
         crossover_x = np.random.randint(0, self.n_p, 2)
@@ -241,7 +241,7 @@ class RealCodedGA:
             x_min = np.min(x_values)
             result_x = x[np.argmin(x_values)]
             min_values.append(x_min)
-            print("n_p: {0}, n_c: {1}, Generation: {2}, Minimum: {3}".format(n_p, n_c, g, x_min))
+            print("n_p: {0}, n_c: {1}, Generation: {2}, Minimum: {3}".format(self.n_p, self.n_c, g, x_min))
 
             # もし誤差が閾値以下になったら終了
             if x_min < self.thold:
@@ -260,19 +260,6 @@ class RealCodedGA:
         #plt.show()
 
 if __name__ == "__main__":
-    #rcga = RealCodedGA(1000, 0.7, 600, 100, 0.5, Crossover.REX, GenerationGap.JGG, 100)
-    #rcga.run()
-
-    # 実験2
-    for n_p in [50, 100, 150, 300, 500]:
-        for n_c in [100, 300, 600, 900, 1200, 1500, 2000]:
-            if n_p > n_c:
-                continue
-            filename = "results/{0}_{1}_{2}_{3}_{4}_{5}".format(Crossover.REX.value, GenerationGap.JGG.value, 1000, 0, n_c, n_p)
-            if not os.path.exists(filename + "_log.csv"):
-                rcga = RealCodedGA(1000, 0, n_c, n_p, 0.5, Crossover.REX, GenerationGap.JGG)
-                rcga.run()
-
     # 実験1
     # 親個体数と子個体数固定、交叉手法・生存選択・交叉率・αを変えて実験
     # 交叉手法 : BLX-α, REX
@@ -282,7 +269,6 @@ if __name__ == "__main__":
     # 親個体数 : 50
     # 子個体数 : 300
     #rcgas = []
-    '''
     for crossover in [Crossover.BLX_ALPHA, Crossover.REX]:
         for generation_gap in [GenerationGap.MGG, GenerationGap.JGG]:
             if crossover == Crossover.BLX_ALPHA:
@@ -301,6 +287,16 @@ if __name__ == "__main__":
                     rcga.run()
                     #rcgas.append(rcga)
 
-    #with ThreadPoolExecutor(max_workers=4) as executor:
-    #    executor.map(lambda rcga: rcga.run(), rcgas) 
-    '''
+    
+    # 実験2
+    # 親個体数と子個体数を変化させて実験
+    # 交叉手法：REX
+    # 生存選択：JGG
+    for n_p in [50, 100, 150, 300, 500]:
+        for n_c in [100, 300, 600, 900, 1200, 1500, 2000]:
+            if n_p > n_c:
+                continue
+            filename = "results/{0}_{1}_{2}_{3}_{4}_{5}".format(Crossover.REX.value, GenerationGap.JGG.value, 1000, 0, n_c, n_p)
+            if not os.path.exists(filename + "_log.csv"):
+                rcga = RealCodedGA(1000, 0, n_c, n_p, 0.5, Crossover.REX, GenerationGap.JGG)
+                rcga.run()

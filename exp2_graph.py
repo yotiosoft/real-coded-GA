@@ -12,7 +12,7 @@ for n_p in [50, 100, 150, 300, 500]:
         with open(filename, 'r') as f:
             reader = csv.reader(f)
             data = []
-            for x in list(reader)[:1500]:
+            for x in list(reader)[:1000]:
                 if x[0] != "time":
                     data.append(float(x[1]))
             plt.plot(data, label="n_p={0}, n_c={1}".format(n_p, n_c))
@@ -20,4 +20,5 @@ for n_p in [50, 100, 150, 300, 500]:
         plt.ylim(0, 5000)
         plt.xlabel("Generation")
         plt.ylabel("Minimum")
+    plt.savefig("results/{0}_{1}_{2}_{3}_{4}_graph.png".format("REX", "JGG", 1000, 0, n_p))
     plt.show()
